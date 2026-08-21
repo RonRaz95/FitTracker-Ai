@@ -4,30 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="FitTracker AI">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
 
-  <title>FitTracker AI - Google Cloud & Gemini</title>
+  <title>FitTracker AI - Pro Gym Companion</title>
   
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --bg-primary: #0f172a;
-      --bg-secondary: #1e293b;
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #334155;
       --accent: #38bdf8;
-      --accent-success: #22c55e;
-      --accent-warning: #eab308;
-      --accent-danger: #f43f5e;
+      --accent-hover: #0284c7;
+      --purple: #a855f7;
       --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: #334155;
+      --text-sub: #94a3b8;
+      --border: #475569;
+      --danger: #f43f5e;
+      --success: #22c55e;
     }
 
     * {
@@ -39,97 +37,171 @@
     }
 
     body {
-      background-color: var(--bg-primary);
+      background-color: var(--bg-main);
       color: var(--text-main);
-      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
+    /* Header & Navigation Bar */
     header {
-      padding: 16px 0;
-      text-align: center;
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 16px;
+      background: var(--bg-card);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     header h1 {
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: var(--accent);
     }
 
-    .status-bar {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .nav-tabs {
-      display: flex;
-      background: var(--bg-secondary);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 20px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
+    .menu-btn {
       background: transparent;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 0.85rem;
-      border-radius: 8px;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    /* Sidebar Drawer Navigation */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100%;
+      background: var(--bg-card);
+      z-index: 201;
+      transition: left 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar.open {
+      left: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 1.5rem;
       cursor: pointer;
     }
 
-    .tab-btn.active {
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: var(--text-sub);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item.active, .nav-item:hover {
       background: var(--accent);
       color: #000;
     }
 
-    .tab-content {
-      display: none;
+    /* Main Content Layout */
+    main {
       flex: 1;
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
     }
 
-    .tab-content.active {
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
       display: block;
     }
 
     .card {
-      background: var(--bg-secondary);
+      background: var(--bg-card);
       border-radius: 14px;
       padding: 16px;
       margin-bottom: 16px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
     }
 
-    .card h3 {
+    .card h2, .card h3 {
       font-size: 1.1rem;
       margin-bottom: 12px;
+      color: var(--text-main);
     }
 
     label {
       display: block;
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--text-sub);
       margin-bottom: 6px;
     }
 
-    input, select, button, textarea {
+    input, select, button {
       width: 100%;
       padding: 12px;
       border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      background: var(--bg-main);
       color: var(--text-main);
       font-size: 0.95rem;
       margin-bottom: 12px;
       outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
     }
 
     button.btn-primary {
@@ -140,25 +212,23 @@
       cursor: pointer;
     }
 
-    button.btn-gemini {
-      background: linear-gradient(135deg, #a855f7, #38bdf8);
+    button.btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button.btn-purple {
+      background: linear-gradient(135deg, var(--purple), var(--accent));
       color: #fff;
       font-weight: 700;
       border: none;
       cursor: pointer;
     }
 
-    .gemini-analysis-box {
-      background: rgba(168, 85, 247, 0.1);
-      border: 1px solid #a855f7;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      color: #f3e8ff;
-      white-space: pre-line;
-    }
-
+    /* Workout Session Styles */
     .set-row {
       display: flex;
       gap: 8px;
@@ -167,9 +237,9 @@
     }
 
     .set-row span {
-      width: 50px;
+      width: 45px;
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--text-sub);
     }
 
     .set-row input {
@@ -181,9 +251,18 @@
       background: transparent;
       color: var(--accent);
       border: 1px dashed var(--accent);
-      font-size: 0.85rem;
       padding: 8px;
-      margin-top: 6px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Preset Buttons Grid */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     .chart-container {
@@ -192,101 +271,173 @@
       width: 100%;
       margin-top: 16px;
     }
+
+    .gemini-box {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid var(--purple);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      white-space: pre-line;
+      color: #f3e8ff;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Top Header Bar -->
   <header>
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <h1>FitTracker AI</h1>
-    <div id="auth-status" class="status-bar">Connecting to Google Cloud (Firebase)...</div>
+    <div id="auth-status-indicator" style="font-size: 0.8rem; color: var(--text-sub);">Local</div>
   </header>
 
-  <!-- Auth / Cloud Sync Settings -->
-  <div id="auth-card" class="card">
-    <h3>Google Cloud Sync (Firebase)</h3>
-    <input type="email" id="auth-email" placeholder="Email">
-    <input type="password" id="auth-password" placeholder="Password">
-    <div style="display: flex; gap: 8px;">
-      <button class="btn-primary" onclick="loginFirebase()">Log In</button>
-      <button class="btn-primary" style="background: var(--border-color); color: #fff;" onclick="registerFirebase()">Sign Up</button>
+  <!-- Sidebar Overlay & Navigation Drawer -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <h2>Menu Nav</h2>
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
     </div>
-  </div>
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="navigate('workout')">🏋️ Workout Tracker</li>
+      <li class="nav-item" onclick="navigate('programs')">📋 Program Builder</li>
+      <li class="nav-item" onclick="navigate('exercises')">💪 Muscle & Exercises</li>
+      <li class="nav-item" onclick="navigate('gemini')">🤖 AI Coach</li>
+      <li class="nav-item" onclick="navigate('analytics')">📈 Analytics</li>
+      <li class="nav-item" onclick="navigate('cloud')">☁️ Cloud & Account</li>
+    </ul>
+  </aside>
 
-  <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('workout')">Active Workout</button>
-    <button class="tab-btn" onclick="switchTab('gemini')">Google AI Analysis</button>
-    <button class="tab-btn" onclick="switchTab('programs')">Programs</button>
-    <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
-  </nav>
+  <!-- Main Content Body -->
+  <main>
 
-  <!-- TAB 1: WORKOUT -->
-  <div id="tab-workout" class="tab-content active">
-    <div class="card">
-      <label>Select Workout Program</label>
-      <select id="active-workout-select" onchange="loadWorkoutSession()">
-        <option value="">-- Choose Program --</option>
-      </select>
-    </div>
-
-    <div id="workout-session-container"></div>
-  </div>
-
-  <!-- TAB 2: GOOGLE GEMINI AI -->
-  <div id="tab-gemini" class="tab-content">
-    <div class="card">
-      <h3>Google Gemini API Key</h3>
-      <label>Enter API Key (Get yours for free at Google AI Studio):</label>
-      <input type="password" id="gemini-api-key" placeholder="AIzaSy..." onchange="saveGeminiKey()">
-    </div>
-
-    <div class="card">
-      <h3>Smart Fatigue & Recovery Analysis (Gemini 2.5)</h3>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-        The AI will scan your entire workout history to detect performance drops, overreaching, recommend a Deload or Rest Week, or suggest exercise variations.
-      </p>
-      <button class="btn-gemini" onclick="runGeminiDeepAnalysis()">Run Deep AI Analysis</button>
-    </div>
-
-    <div id="gemini-result-card" class="card" style="display: none;">
-      <h3>Google AI Coach Recommendations:</h3>
-      <div id="gemini-analysis-text" class="gemini-analysis-box"></div>
-    </div>
-  </div>
-
-  <!-- TAB 3: PROGRAMS -->
-  <div id="tab-programs" class="tab-content">
-    <div class="card">
-      <h3>Preset Workout Programs</h3>
-      <button class="btn-primary" onclick="loadPresetProgram('hypertrophy')">Load Preset Upper/Lower Split</button>
-    </div>
-
-    <div class="card">
-      <h3>Create Custom Program</h3>
-      <input type="text" id="custom-program-name" placeholder="Program Name (e.g., Push A)">
-      <div id="custom-exercises-list"></div>
-      <button class="btn-add-set" onclick="addExerciseToCustom()">+ Add Exercise</button>
-      <button class="btn-primary" style="margin-top: 12px;" onclick="saveCustomProgram()">Save Program to Cloud</button>
-    </div>
-  </div>
-
-  <!-- TAB 4: ANALYTICS -->
-  <div id="tab-analytics" class="tab-content">
-    <div class="card">
-      <label>Select Exercise to View Progress</label>
-      <select id="analytics-exercise-select" onchange="renderChart()"></select>
-      <div class="chart-container">
-        <canvas id="progressChart"></canvas>
+    <!-- SECTION 1: WORKOUT SESSION -->
+    <section id="view-workout" class="view-section active">
+      <div class="card">
+        <label>Choose Program to Train</label>
+        <select id="select-active-program" onchange="startWorkoutSession()">
+          <option value="">-- Select Workout --</option>
+        </select>
       </div>
-    </div>
-  </div>
 
-  <!-- Firebase SDKs -->
+      <div id="active-workout-container"></div>
+    </section>
+
+    <!-- SECTION 2: PROGRAM BUILDER -->
+    <section id="view-programs" class="view-section">
+      <div class="card">
+        <h3>Preset Workout Splits</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Load a structured workout split directly into your app:</p>
+        <div class="preset-grid">
+          <button class="btn-secondary" onclick="loadPreset('ppl')">Push / Pull / Legs</button>
+          <button class="btn-secondary" onclick="loadPreset('upperlower')">Upper / Lower</button>
+          <button class="btn-secondary" onclick="loadPreset('brosplit')">Bro Split (5 Day)</button>
+          <button class="btn-secondary" onclick="loadPreset('fullbody')">Full Body (3 Day)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Build Custom Program</h3>
+        <input type="text" id="new-program-name" placeholder="Program Title (e.g. Chest & Arms)">
+        
+        <label>Add Exercise from Database</label>
+        <div style="display: flex; gap: 8px;">
+          <select id="program-exercise-picker"></select>
+          <button class="btn-secondary" style="width: auto; padding: 0 16px;" onclick="addExerciseToProgramBuilder()">Add</button>
+        </div>
+
+        <div id="selected-exercises-list" style="margin: 12px 0;"></div>
+        <button class="btn-primary" onclick="saveCustomProgram()">Save Program</button>
+      </div>
+    </section>
+
+    <!-- SECTION 3: EXERCISES & MUSCLE GROUPS -->
+    <section id="view-exercises" class="view-section">
+      <div class="card">
+        <h3>Add Custom Exercise</h3>
+        <input type="text" id="custom-ex-name" placeholder="Exercise Name (e.g. Incline Cable Fly)">
+        <label>Muscle Group</label>
+        <select id="custom-ex-group">
+          <option value="Chest">Chest</option>
+          <option value="Back">Back</option>
+          <option value="Legs">Legs</option>
+          <option value="Shoulders">Shoulders</option>
+          <option value="Arms">Arms</option>
+          <option value="Core">Core</option>
+        </select>
+        <button class="btn-primary" onclick="addNewCustomExercise()">Add Exercise to Database</button>
+      </div>
+
+      <div class="card">
+        <h3>Exercise Database</h3>
+        <label>Filter by Muscle Group</label>
+        <select id="filter-muscle-group" onchange="renderExerciseDatabase()">
+          <option value="All">All Muscle Groups</option>
+          <option value="Chest">Chest</option>
+          <option value="Back">Back</option>
+          <option value="Legs">Legs</option>
+          <option value="Shoulders">Shoulders</option>
+          <option value="Arms">Arms</option>
+          <option value="Core">Core</option>
+        </select>
+        <div id="exercise-db-list" style="margin-top: 12px;"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: AI COACH (GEMINI) -->
+    <section id="view-gemini" class="view-section">
+      <div class="card">
+        <h3>Google Gemini API Settings</h3>
+        <input type="password" id="gemini-key-input" placeholder="Enter Gemini API Key" onchange="saveGeminiKey()">
+      </div>
+
+      <div class="card">
+        <h3>Smart Training Analysis</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Analyze fatigue accumulation, plateaus, and receive recommendations for deloads or exercise substitutions.</p>
+        <button class="btn-purple" onclick="runGeminiAnalysis()">Run AI Progress Analysis</button>
+      </div>
+
+      <div id="gemini-response-card" class="card" style="display: none;">
+        <h3>AI Coach Recommendations</h3>
+        <div id="gemini-text" class="gemini-box"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: ANALYTICS -->
+    <section id="view-analytics" class="view-section">
+      <div class="card">
+        <h3>Progress Over Time</h3>
+        <label>Select Exercise</label>
+        <select id="analytics-picker" onchange="renderAnalyticsChart()"></select>
+        <div class="chart-container">
+          <canvas id="progressChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: CLOUD & AUTH -->
+    <section id="view-cloud" class="view-section">
+      <div id="auth-box" class="card">
+        <h3>Google Cloud Sync (Firebase)</h3>
+        <input type="email" id="cloud-email" placeholder="Email">
+        <input type="password" id="cloud-pass" placeholder="Password">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-primary" onclick="loginCloud()">Log In</button>
+          <button class="btn-secondary" onclick="registerCloud()">Sign Up</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Firebase Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase Project Configuration
     const firebaseConfig = {
       apiKey: "YOUR_FIREBASE_API_KEY",
       authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -302,182 +453,304 @@
 
     window.currentUser = null;
 
-    // Check Authentication State
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         window.currentUser = user;
-        document.getElementById('auth-status').innerText = `Cloud Connected: ${user.email}`;
-        document.getElementById('auth-card').style.display = 'none';
-        await loadUserDataFromCloud();
+        document.getElementById('auth-status-indicator').innerText = 'Cloud Synced';
+        document.getElementById('auth-status-indicator').style.color = 'var(--success)';
+        await loadCloudData();
       } else {
-        document.getElementById('auth-status').innerText = 'Not Connected to Cloud (Running Local Mode)';
-        document.getElementById('auth-card').style.display = 'block';
+        document.getElementById('auth-status-indicator').innerText = 'Local Mode';
       }
     });
 
-    window.loginFirebase = async () => {
-      const email = document.getElementById('auth-email').value;
-      const pass = document.getElementById('auth-password').value;
+    window.loginCloud = async () => {
+      const email = document.getElementById('cloud-email').value;
+      const pass = document.getElementById('cloud-pass').value;
       try {
         await signInWithEmailAndPassword(auth, email, pass);
         alert('Logged in successfully!');
-      } catch (err) {
-        alert('Login Error: ' + err.message);
-      }
+      } catch (e) { alert('Error: ' + e.message); }
     };
 
-    window.registerFirebase = async () => {
-      const email = document.getElementById('auth-email').value;
-      const pass = document.getElementById('auth-password').value;
+    window.registerCloud = async () => {
+      const email = document.getElementById('cloud-email').value;
+      const pass = document.getElementById('cloud-pass').value;
       try {
         await createUserWithEmailAndPassword(auth, email, pass);
-        alert('Account created successfully!');
-      } catch (err) {
-        alert('Registration Error: ' + err.message);
-      }
+        alert('Account registered successfully!');
+      } catch (e) { alert('Error: ' + e.message); }
     };
 
-    // Save Data to Cloud
-    window.saveDataToCloud = async () => {
-      if (!window.currentUser) {
-        localStorage.setItem('fit_programs', JSON.stringify(window.programs));
-        localStorage.setItem('fit_history', JSON.stringify(window.historyData));
-        return;
-      }
-
+    window.syncToCloud = async () => {
+      if (!window.currentUser) return;
       try {
         await setDoc(doc(db, "users", window.currentUser.uid), {
+          exercises: window.exerciseDb,
           programs: window.programs,
-          history: window.historyData,
-          updatedAt: new Date().toISOString()
+          history: window.historyData
         });
-        console.log("Data successfully saved to Cloud Firestore!");
-      } catch (e) {
-        console.error("Cloud Save Error: ", e);
-      }
+      } catch(e) { console.error("Sync error: ", e); }
     };
 
-    // Load Data from Cloud
-    window.loadUserDataFromCloud = async () => {
+    window.loadCloudData = async () => {
       if (!window.currentUser) return;
       try {
         const docRef = doc(db, "users", window.currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          window.exerciseDb = data.exercises || window.exerciseDb;
           window.programs = data.programs || window.programs;
           window.historyData = data.history || window.historyData;
-          updateProgramSelects();
-          updateAnalyticsSelect();
+          saveLocal();
+          refreshAllUI();
         }
-      } catch (e) {
-        console.error("Cloud Load Error: ", e);
-      }
+      } catch(e) { console.error("Cloud load error: ", e); }
     };
   </script>
 
+  <!-- Main Application Logic -->
   <script>
-    // Local Data Management
-    window.programs = JSON.parse(localStorage.getItem('fit_programs')) || {
-      'Upper Body': ["Barbell Bench Press", "Barbell Row", "Incline Dumbbell Press", "Underhand Lat Pulldown"],
-      'Lower Body': ["Barbell Squat", "Romanian Deadlift"]
-    };
+    // Initial Exercise Database categorized by Muscle Group
+    window.exerciseDb = JSON.parse(localStorage.getItem('fit_ex_db')) || [
+      { name: "Barbell Bench Press", group: "Chest" },
+      { name: "Incline Dumbbell Press", group: "Chest" },
+      { name: "Chest Fly", group: "Chest" },
+      { name: "Barbell Row", group: "Back" },
+      { name: "Underhand Lat Pulldown", group: "Back" },
+      { name: "Cable Pullover", group: "Back" },
+      { name: "Barbell Squat", group: "Legs" },
+      { name: "Romanian Deadlift", group: "Legs" },
+      { name: "Leg Extension", group: "Legs" },
+      { name: "Overhead Shoulder Press", group: "Shoulders" },
+      { name: "Lateral Raise", group: "Shoulders" },
+      { name: "Barbell Bicep Curl", group: "Arms" },
+      { name: "Tricep Rope Pushdown", group: "Arms" },
+      { name: "Hanging Leg Raise", group: "Core" }
+    ];
 
+    window.programs = JSON.parse(localStorage.getItem('fit_programs')) || {};
     window.historyData = JSON.parse(localStorage.getItem('fit_history')) || {};
+    
     let currentChart = null;
+    let tempBuilderExercises = [];
 
     document.addEventListener("DOMContentLoaded", () => {
       const savedKey = localStorage.getItem('gemini_key');
-      if (savedKey) document.getElementById('gemini-api-key').value = savedKey;
-      updateProgramSelects();
-      updateAnalyticsSelect();
+      if (savedKey) document.getElementById('gemini-key-input').value = savedKey;
+
+      refreshAllUI();
     });
 
-    function saveGeminiKey() {
-      const key = document.getElementById('gemini-api-key').value.trim();
-      localStorage.setItem('gemini_key', key);
+    function saveLocal() {
+      localStorage.setItem('fit_ex_db', JSON.stringify(window.exerciseDb));
+      localStorage.setItem('fit_programs', JSON.stringify(window.programs));
+      localStorage.setItem('fit_history', JSON.stringify(window.historyData));
+      if (window.syncToCloud) window.syncToCloud();
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      event.target.classList.add('active');
-      document.getElementById(`tab-${tabId}`).classList.add('active');
+    function refreshAllUI() {
+      populateExercisePickers();
+      populateProgramSelect();
+      renderExerciseDatabase();
+    }
 
-      if (tabId === 'analytics') {
-        updateAnalyticsSelect();
-        renderChart();
+    /* Sidebar Navigation */
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const isOpen = sidebar.classList.contains('open');
+
+      if (isOpen) {
+        sidebar.classList.remove('open');
+        overlay.style.display = 'none';
+      } else {
+        sidebar.classList.add('open');
+        overlay.style.display = 'block';
       }
     }
 
-    function updateProgramSelects() {
-      const select = document.getElementById('active-workout-select');
-      select.innerHTML = '<option value="">-- Choose Program --</option>';
-      Object.keys(window.programs).forEach(prog => {
-        select.innerHTML += `<option value="${prog}">${prog}</option>`;
+    function navigate(viewId) {
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+
+      document.getElementById(`view-${viewId}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+
+      toggleSidebar();
+
+      if (viewId === 'analytics') populateAnalyticsPicker();
+    }
+
+    /* Exercise Database & Muscle Groups */
+    function populateExercisePickers() {
+      const picker = document.getElementById('program-exercise-picker');
+      picker.innerHTML = '';
+      window.exerciseDb.forEach(ex => {
+        picker.innerHTML += `<option value="${ex.name}">${ex.name} (${ex.group})</option>`;
       });
     }
 
-    function loadWorkoutSession() {
-      const selectedProgram = document.getElementById('active-workout-select').value;
-      const container = document.getElementById('workout-session-container');
+    function addNewCustomExercise() {
+      const name = document.getElementById('custom-ex-name').value.trim();
+      const group = document.getElementById('custom-ex-group').value;
+
+      if (!name) return alert('Enter exercise name!');
+      
+      window.exerciseDb.push({ name, group });
+      saveLocal();
+      refreshAllUI();
+
+      document.getElementById('custom-ex-name').value = '';
+      alert('Custom exercise added successfully!');
+    }
+
+    function renderExerciseDatabase() {
+      const filter = document.getElementById('filter-muscle-group').value;
+      const list = document.getElementById('exercise-db-list');
+      list.innerHTML = '';
+
+      const filtered = filter === 'All' ? window.exerciseDb : window.exerciseDb.filter(ex => ex.group === filter);
+
+      filtered.forEach(ex => {
+        list.innerHTML += `
+          <div style="display:flex; justify-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span><strong>${ex.name}</strong></span>
+            <span style="color: var(--accent); font-size: 0.85rem;">${ex.group}</span>
+          </div>
+        `;
+      });
+    }
+
+    /* Program Builder & Presets */
+    function addExerciseToProgramBuilder() {
+      const exName = document.getElementById('program-exercise-picker').value;
+      if (!exName || tempBuilderExercises.includes(exName)) return;
+
+      tempBuilderExercises.push(exName);
+      renderBuilderList();
+    }
+
+    function renderBuilderList() {
+      const list = document.getElementById('selected-exercises-list');
+      list.innerHTML = '';
+      tempBuilderExercises.forEach((ex, idx) => {
+        list.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-main); padding: 8px 12px; border-radius: 6px; margin-bottom: 6px;">
+            <span>${idx + 1}. ${ex}</span>
+            <button onclick="removeBuilderEx(${idx})" style="width:auto; margin:0; padding: 2px 8px; background:var(--danger); border:none; color:#fff;">✕</button>
+          </div>
+        `;
+      });
+    }
+
+    function removeBuilderEx(idx) {
+      tempBuilderExercises.splice(idx, 1);
+      renderBuilderList();
+    }
+
+    function saveCustomProgram() {
+      const name = document.getElementById('new-program-name').value.trim();
+      if (!name) return alert('Enter program name!');
+      if (tempBuilderExercises.length === 0) return alert('Add at least one exercise!');
+
+      window.programs[name] = [...tempBuilderExercises];
+      saveLocal();
+      populateProgramSelect();
+
+      document.getElementById('new-program-name').value = '';
+      tempBuilderExercises = [];
+      renderBuilderList();
+      alert('Program saved successfully!');
+    }
+
+    function loadPreset(type) {
+      if (type === 'ppl') {
+        window.programs['Push Day'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Overhead Shoulder Press', 'Lateral Raise', 'Tricep Rope Pushdown'];
+        window.programs['Pull Day'] = ['Barbell Row', 'Underhand Lat Pulldown', 'Cable Pullover', 'Barbell Bicep Curl'];
+        window.programs['Legs Day'] = ['Barbell Squat', 'Romanian Deadlift', 'Leg Extension', 'Hanging Leg Raise'];
+      } else if (type === 'upperlower') {
+        window.programs['Upper Body'] = ['Barbell Bench Press', 'Barbell Row', 'Incline Dumbbell Press', 'Underhand Lat Pulldown', 'Lateral Raise'];
+        window.programs['Lower Body'] = ['Barbell Squat', 'Romanian Deadlift', 'Leg Extension', 'Hanging Leg Raise'];
+      } else if (type === 'brosplit') {
+        window.programs['Chest'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Chest Fly'];
+        window.programs['Back'] = ['Barbell Row', 'Underhand Lat Pulldown', 'Cable Pullover'];
+        window.programs['Shoulders'] = ['Overhead Shoulder Press', 'Lateral Raise'];
+        window.programs['Legs'] = ['Barbell Squat', 'Romanian Deadlift', 'Leg Extension'];
+        window.programs['Arms'] = ['Barbell Bicep Curl', 'Tricep Rope Pushdown'];
+      } else if (type === 'fullbody') {
+        window.programs['Full Body A'] = ['Barbell Squat', 'Barbell Bench Press', 'Barbell Row', 'Lateral Raise'];
+        window.programs['Full Body B'] = ['Romanian Deadlift', 'Incline Dumbbell Press', 'Underhand Lat Pulldown', 'Barbell Bicep Curl'];
+      }
+
+      saveLocal();
+      populateProgramSelect();
+      alert('Preset split loaded into your programs!');
+    }
+
+    function populateProgramSelect() {
+      const select = document.getElementById('select-active-program');
+      select.innerHTML = '<option value="">-- Select Workout --</option>';
+      Object.keys(window.programs).forEach(p => {
+        select.innerHTML += `<option value="${p}">${p}</option>`;
+      });
+    }
+
+    /* Active Workout Session */
+    function startWorkoutSession() {
+      const selected = document.getElementById('select-active-program').value;
+      const container = document.getElementById('active-workout-container');
       container.innerHTML = '';
 
-      if (!selectedProgram || !window.programs[selectedProgram]) return;
+      if (!selected || !window.programs[selected]) return;
 
-      window.programs[selectedProgram].forEach((exName, index) => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div class="exercise-header">
+      window.programs[selected].forEach((exName, idx) => {
+        container.innerHTML += `
+          <div class="card">
             <h3>${exName}</h3>
-          </div>
-          <div id="sets-container-${index}">
-            <div class="set-row">
-              <span>Set 1</span>
-              <input type="number" placeholder="Weight (kg)" class="weight-input-${index}">
-              <input type="number" placeholder="Reps" class="reps-input-${index}">
+            <div id="sets-box-${idx}">
+              <div class="set-row">
+                <span>Set 1</span>
+                <input type="number" placeholder="kg" class="w-${idx}">
+                <input type="number" placeholder="reps" class="r-${idx}">
+              </div>
             </div>
+            <button class="btn-add-set" onclick="addSetRowToSession(${idx})">+ Add Set</button>
           </div>
-          <button class="btn-add-set" onclick="addSetRow(${index})">+ Add Set</button>
         `;
-        container.appendChild(card);
       });
 
-      container.innerHTML += `<button class="btn-primary" onclick="saveWorkoutSession()">Complete & Save Workout</button>`;
+      container.innerHTML += `<button class="btn-primary" onclick="finishWorkoutSession()">Complete & Save Session</button>`;
     }
 
-    function addSetRow(exIndex) {
-      const container = document.getElementById(`sets-container-${exIndex}`);
-      const setNum = container.children.length + 1;
-      const row = document.createElement('div');
-      row.className = 'set-row';
-      row.innerHTML = `
-        <span>Set ${setNum}</span>
-        <input type="number" placeholder="Weight (kg)" class="weight-input-${exIndex}">
-        <input type="number" placeholder="Reps" class="reps-input-${exIndex}">
+    function addSetRowToSession(exIdx) {
+      const box = document.getElementById(`sets-box-${exIdx}`);
+      const setNum = box.children.length + 1;
+      box.innerHTML += `
+        <div class="set-row">
+          <span>Set ${setNum}</span>
+          <input type="number" placeholder="kg" class="w-${exIdx}">
+          <input type="number" placeholder="reps" class="r-${exIdx}">
+        </div>
       `;
-      container.appendChild(row);
     }
 
-    async function saveWorkoutSession() {
-      const selectedProgram = document.getElementById('active-workout-select').value;
+    function finishWorkoutSession() {
+      const selectedProgram = document.getElementById('select-active-program').value;
       if (!selectedProgram) return;
 
       const dateStr = new Date().toISOString().split('T')[0];
 
-      window.programs[selectedProgram].forEach((exName, index) => {
-        const weights = document.querySelectorAll(`.weight-input-${index}`);
-        const reps = document.querySelectorAll(`.reps-input-${index}`);
+      window.programs[selectedProgram].forEach((exName, idx) => {
+        const weights = document.querySelectorAll(`.w-${idx}`);
+        const reps = document.querySelectorAll(`.r-${idx}`);
         
         const setsData = [];
-        weights.forEach((wInput, i) => {
-          const w = parseFloat(wInput.value);
+        weights.forEach((wIn, i) => {
+          const w = parseFloat(wIn.value);
           const r = parseInt(reps[i].value);
-          if (!isNaN(w) && !isNaN(r)) {
-            setsData.push({ weight: w, reps: r });
-          }
+          if (!isNaN(w) && !isNaN(r)) setsData.push({ weight: w, reps: r });
         });
 
         if (setsData.length > 0) {
@@ -486,84 +759,66 @@
         }
       });
 
-      if (window.saveDataToCloud) await window.saveDataToCloud();
-      alert("Workout saved successfully to Cloud!");
-      loadWorkoutSession();
+      saveLocal();
+      alert('Workout session saved successfully!');
+      startWorkoutSession();
     }
 
-    // Google Gemini API Integration for Deep Analysis
-    async function runGeminiDeepAnalysis() {
+    /* Gemini AI & Analytics */
+    function saveGeminiKey() {
+      localStorage.setItem('gemini_key', document.getElementById('gemini-key-input').value.trim());
+    }
+
+    async function runGeminiAnalysis() {
       const apiKey = localStorage.getItem('gemini_key');
-      if (!apiKey) {
-        alert("Please enter a Gemini API Key in the AI tab.");
-        return;
-      }
+      if (!apiKey) return alert('Enter Gemini API Key first!');
 
-      const resultCard = document.getElementById('gemini-result-card');
-      const resultText = document.getElementById('gemini-analysis-text');
-      resultCard.style.display = 'block';
-      resultText.innerText = "Google Gemini is analyzing your workout history and fatigue accumulation...";
+      document.getElementById('gemini-response-card').style.display = 'block';
+      document.getElementById('gemini-text').innerText = 'Analyzing your workouts and progress...';
 
-      const prompt = `
-You are an expert strength & hypertrophy coach and exercise physiologist.
-Here is the complete user workout history data (dates, exercise names, weights, and reps per set):
+      const prompt = `You are an elite strength & hypertrophy coach. Analyze this workout history data:
 ${JSON.stringify(window.historyData, null, 2)}
 
-Please provide a detailed analysis in English covering the following points:
-1. **Fatigue & Plateau Diagnosis:** Are there signs of accumulated fatigue or performance drop/plateau over recent workouts?
-2. **Recovery Recommendation:** Should the user perform a Deload Week (20-30% load drop), a full Rest Week, or continue progressing?
-3. **Exercise Replacement:** Identify any stalled exercises and suggest hypertrophic alternatives.
-4. **Exercise Reordering:** Recommend any order adjustments to optimize performance and recovery.
-`;
+Provide recommendations in English on:
+1. Progress or plateau detection per exercise.
+2. Fatigue management (Deload or Rest Week recommendations).
+3. Exercise substitutions for stalled movements.`;
 
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
-
-        const data = await response.json();
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-          resultText.innerText = data.candidates[0].content.parts[0].text;
-        } else {
-          resultText.innerText = "Error receiving response from Gemini. Please verify your API Key.";
-        }
-      } catch (err) {
-        resultText.innerText = "Connection error with Google Gemini: " + err.message;
+        const data = await res.json();
+        document.getElementById('gemini-text').innerText = data.candidates[0].content.parts[0].text;
+      } catch (e) {
+        document.getElementById('gemini-text').innerText = 'Error connecting to Gemini API.';
       }
     }
 
-    function updateAnalyticsSelect() {
-      const select = document.getElementById('analytics-exercise-select');
-      select.innerHTML = '';
+    function populateAnalyticsPicker() {
+      const picker = document.getElementById('analytics-picker');
+      picker.innerHTML = '';
       const exercises = Object.keys(window.historyData);
 
       if (exercises.length === 0) {
-        select.innerHTML = '<option>No workout history available</option>';
+        picker.innerHTML = '<option>No Workout History Recorded</option>';
         return;
       }
 
-      exercises.forEach(ex => {
-        select.innerHTML += `<option value="${ex}">${ex}</option>`;
-      });
+      exercises.forEach(ex => picker.innerHTML += `<option value="${ex}">${ex}</option>`);
+      renderAnalyticsChart();
     }
 
-    function renderChart() {
-      const exName = document.getElementById('analytics-exercise-select').value;
+    function renderAnalyticsChart() {
+      const exName = document.getElementById('analytics-picker').value;
       const ctx = document.getElementById('progressChart').getContext('2d');
 
-      if (!window.historyData[exName] || window.historyData[exName].length === 0) {
-        if (currentChart) currentChart.destroy();
-        return;
-      }
+      if (!window.historyData[exName]) return;
 
-      const labels = window.historyData[exName].map(entry => entry.date);
-      const dataPoints = window.historyData[exName].map(entry => {
-        return Math.max(...entry.sets.map(s => s.weight));
-      });
+      const labels = window.historyData[exName].map(e => e.date);
+      const dataPoints = window.historyData[exName].map(e => Math.max(...e.sets.map(s => s.weight)));
 
       if (currentChart) currentChart.destroy();
 
@@ -572,11 +827,10 @@ Please provide a detailed analysis in English covering the following points:
         data: {
           labels: labels,
           datasets: [{
-            label: 'Peak Weight (kg)',
+            label: 'Max Weight (kg)',
             data: dataPoints,
             borderColor: '#38bdf8',
             backgroundColor: 'rgba(56, 189, 248, 0.2)',
-            borderWidth: 3,
             fill: true,
             tension: 0.3
           }]
@@ -587,12 +841,10 @@ Please provide a detailed analysis in English covering the following points:
           scales: {
             y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
             x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
-          },
-          plugins: { legend: { labels: { color: '#f8fafc' } } }
+          }
         }
       });
     }
   </script>
 </body>
 </html>
-
