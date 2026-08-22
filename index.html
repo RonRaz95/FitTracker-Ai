@@ -1,1064 +1,280 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  
-  <meta name="theme-color" content="#0f172a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="FitTracker AI">
-
-  <title>FitTracker AI - Pro Gym Companion</title>
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitTracker AI</title>
   <style>
     :root {
-      --bg-main: #0f172a;
-      --bg-card: #1e293b;
-      --bg-input: #334155;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --purple: #a855f7;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --input-bg: #0f172a;
       --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --border: #475569;
-      --danger: #f43f5e;
-      --success: #22c55e;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --border-color: #334155;
+      --button-bg: #0284c7;
+      --button-hover: #0369a1;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
-      background-color: var(--bg-main);
+      background-color: var(--bg-color);
       color: var(--text-main);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
-    }
-
-    header {
-      background: var(--bg-card);
-      padding: 16px;
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      min-height: 100vh;
+      padding-bottom: 40px;
     }
 
-    header h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--accent);
+    /* Fixed Header Layout */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      padding: 16px;
+      background-color: #121824;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .menu-btn {
       background: transparent;
       border: none;
-      color: var(--text-main);
-      font-size: 1.5rem;
+      color: var(--text-muted);
       cursor: pointer;
-      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 6px;
     }
 
-    /* Sidebar Drawer Positioned Left */
-    .sidebar-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .menu-btn:hover {
+      color: var(--text-main);
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title .accent-text {
+      color: #ffffff;
+      margin-left: 2px;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    /* Main Container */
+    .main-container {
       width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 200;
-      display: none;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: -280px;
-      width: 280px;
-      height: 100%;
-      background: var(--bg-card);
-      z-index: 201;
-      transition: left 0.3s ease;
+      max-width: 600px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      padding: 20px 16px;
-      border-right: 1px solid var(--border);
+      gap: 16px;
     }
 
-    .sidebar.open {
-      left: 0;
+    /* Cards */
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .sidebar-header {
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
     }
 
-    .sidebar-header h2 {
-      font-size: 1.2rem;
-      color: var(--accent);
-    }
-
-    .close-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-sub);
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-
-    .nav-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .nav-item {
-      padding: 12px 16px;
-      border-radius: 8px;
-      color: var(--text-sub);
+    .card-title {
+      font-size: 0.9rem;
+      color: var(--text-muted);
       font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s ease;
     }
 
-    .nav-item.active, .nav-item:hover {
-      background: var(--accent);
-      color: #000;
-    }
-
-    main {
-      flex: 1;
-      padding: 16px;
-      max-width: 600px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .view-section {
-      display: none;
-    }
-
-    .view-section.active {
-      display: block;
-    }
-
-    .card {
-      background: var(--bg-card);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid var(--border);
-    }
-
-    .card h2, .card h3 {
+    .exercise-title {
       font-size: 1.1rem;
-      margin-bottom: 12px;
+      font-weight: 700;
       color: var(--text-main);
     }
 
-    label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      margin-bottom: 6px;
-    }
-
-    input, select, button {
+    /* Form Controls */
+    select {
       width: 100%;
-      padding: 12px;
+      padding: 10px 12px;
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg-main);
       color: var(--text-main);
-      font-size: 0.95rem;
-      margin-bottom: 12px;
+      font-size: 1rem;
       outline: none;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--accent);
-    }
-
-    button.btn-primary {
-      background: var(--accent);
-      color: #000;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-    }
-
-    button.btn-secondary {
-      background: var(--bg-input);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    button.btn-purple {
-      background: linear-gradient(135deg, var(--purple), var(--accent));
-      color: #fff;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-    }
-
-    button.btn-icon {
-      width: auto;
-      background: transparent;
-      border: none;
-      color: var(--text-main);
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding: 0 8px;
-      margin: 0;
     }
 
     .set-row {
       display: flex;
-      gap: 8px;
       align-items: center;
-      margin-bottom: 8px;
+      gap: 12px;
     }
 
-    .set-row span {
-      width: 45px;
-      font-size: 0.85rem;
-      color: var(--text-sub);
+    .set-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      width: 35px;
     }
 
-    .set-row input {
-      margin-bottom: 0;
+    .input-group {
+      display: flex;
+      flex: 1;
+      gap: 8px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 1rem;
       text-align: center;
+      outline: none;
+    }
+
+    input[type="number"]::placeholder {
+      color: var(--text-muted);
     }
 
     .btn-add-set {
-      background: transparent;
-      color: var(--accent);
-      border: 1px dashed var(--accent);
-      padding: 8px;
-      font-size: 0.85rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .preset-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 250px;
       width: 100%;
-      margin-top: 16px;
-    }
-
-    .gemini-box {
-      background: rgba(168, 85, 247, 0.1);
-      border: 1px solid var(--purple);
+      padding: 10px;
+      background-color: transparent;
+      border: 1px dashed var(--accent-blue);
       border-radius: 8px;
-      padding: 12px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      white-space: pre-line;
-      color: #f3e8ff;
+      color: var(--accent-blue);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
     }
 
-    /* Action Modal for Editing/Deleting Programs */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 300;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .modal-content {
-      background: var(--bg-card);
-      border-radius: 14px;
-      padding: 20px;
-      width: 100%;
-      max-width: 500px;
-      border: 1px solid var(--border);
-      max-height: 90vh;
-      overflow-y: auto;
+    .btn-add-set:hover {
+      background-color: rgba(56, 189, 248, 0.1);
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header>
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <h1>FitTracker AI</h1>
-    <div id="auth-status-indicator" style="font-size: 0.8rem; color: var(--text-sub);">Local</div>
+  <header class="app-header">
+    <button class="menu-btn" aria-label="Open Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="brand-title">
+      FitTracker <span class="accent-text">AI</span>
+    </div>
+
+    <div class="status-badge">
+      Local Mode
+    </div>
   </header>
 
-  <!-- Left Sidebar Drawer -->
-  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-  <aside id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-      <h2>Menu Nav</h2>
-      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+  <main class="main-container">
+    
+    <!-- Program Selector -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Choose Program to Train</span>
+      </div>
+      <select id="program-select">
+        <option value="push">Push Day</option>
+        <option value="pull">Pull Day</option>
+        <option value="legs">Legs Day</option>
+      </select>
     </div>
-    <ul class="nav-list">
-      <li class="nav-item active" onclick="navigate('workout')">🏋️ Workout Tracker</li>
-      <li class="nav-item" onclick="navigate('programs')">📋 Program Builder</li>
-      <li class="nav-item" onclick="navigate('exercises')">💪 Muscle & Exercises</li>
-      <li class="nav-item" onclick="navigate('gemini')">🤖 AI Coach</li>
-      <li class="nav-item" onclick="navigate('analytics')">📈 Analytics</li>
-      <li class="nav-item" onclick="navigate('cloud')">☁️ Cloud & Account</li>
-    </ul>
-  </aside>
 
-  <!-- Main Body Content -->
-  <main>
-
-    <!-- SECTION 1: WORKOUT TRACKER -->
-    <section id="view-workout" class="view-section active">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <label style="margin:0;">Choose Program to Train</label>
-          <button id="workout-program-options-btn" class="btn-icon" style="display:none;" onclick="openProgramOptionsModal()">⋮</button>
-        </div>
-        <select id="select-active-program" onchange="startWorkoutSession()">
-          <option value="">-- Select Workout --</option>
-        </select>
-      </div>
-
-      <div id="active-workout-container"></div>
-    </section>
-
-    <!-- SECTION 2: PROGRAM BUILDER -->
-    <section id="view-programs" class="view-section">
-      <div class="card">
-        <h3>Preset Workout Splits</h3>
-        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Load structured splits directly into your app:</p>
-        <div class="preset-grid">
-          <button class="btn-secondary" onclick="loadPreset('ppl')">Push / Pull / Legs</button>
-          <button class="btn-secondary" onclick="loadPreset('upperlower')">Upper / Lower</button>
-          <button class="btn-secondary" onclick="loadPreset('brosplit')">Bro Split (5 Day)</button>
-          <button class="btn-secondary" onclick="loadPreset('fullbody')">Full Body (3 Day)</button>
+    <!-- Exercise 1 -->
+    <div class="card">
+      <h2 class="exercise-title">Barbell Bench Press</h2>
+      <div class="set-row">
+        <span class="set-label">Set 1</span>
+        <div class="input-group">
+          <input type="number" placeholder="kg" class="input-kg">
+          <input type="number" placeholder="reps" class="input-reps">
         </div>
       </div>
+      <button class="btn-add-set">+ Add Set</button>
+    </div>
 
-      <div class="card">
-        <h3>Existing Programs</h3>
-        <div id="programs-list-manage"></div>
-      </div>
-
-      <div class="card">
-        <h3>Build Custom Program</h3>
-        <input type="text" id="new-program-name" placeholder="Program Title (e.g. Chest & Arms)">
-        
-        <label>Add Exercise from Database</label>
-        <div style="display: flex; gap: 8px;">
-          <select id="program-exercise-picker"></select>
-          <button class="btn-secondary" style="width: auto; padding: 0 16px;" onclick="addExerciseToProgramBuilder()">Add</button>
-        </div>
-
-        <div id="selected-exercises-list" style="margin: 12px 0;"></div>
-        <button class="btn-primary" onclick="saveCustomProgram()">Save Program</button>
-      </div>
-    </section>
-
-    <!-- SECTION 3: EXERCISES & MUSCLE GROUPS -->
-    <section id="view-exercises" class="view-section">
-      <div class="card">
-        <h3>Add Custom Exercise</h3>
-        <input type="text" id="custom-ex-name" placeholder="Exercise Name (e.g. Incline Cable Fly)">
-        <label>Muscle Group</label>
-        <select id="custom-ex-group">
-          <option value="Chest">Chest</option>
-          <option value="Back">Back</option>
-          <option value="Legs">Legs</option>
-          <option value="Shoulders">Shoulders</option>
-          <option value="Arms">Arms</option>
-          <option value="Core">Core</option>
-        </select>
-        <button class="btn-primary" onclick="addNewCustomExercise()">Add Exercise to Database</button>
-      </div>
-
-      <div class="card">
-        <h3>Exercise Database (Muscle & Strength)</h3>
-        <label>Filter by Muscle Group</label>
-        <select id="filter-muscle-group" onchange="renderExerciseDatabase()">
-          <option value="All">All Muscle Groups</option>
-          <option value="Chest">Chest</option>
-          <option value="Back">Back</option>
-          <option value="Legs">Legs</option>
-          <option value="Shoulders">Shoulders</option>
-          <option value="Arms">Arms</option>
-          <option value="Core">Core</option>
-        </select>
-        <div id="exercise-db-list" style="margin-top: 12px;"></div>
-      </div>
-    </section>
-
-    <!-- SECTION 4: AI COACH (GEMINI) -->
-    <section id="view-gemini" class="view-section">
-      <div class="card">
-        <h3>Google Gemini API Settings</h3>
-        <input type="password" id="gemini-key-input" placeholder="Enter Gemini API Key" onchange="saveGeminiKey()">
-      </div>
-
-      <div class="card">
-        <h3>Smart Training Analysis</h3>
-        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Analyze fatigue, plateaus, and get deload/substitution recommendations.</p>
-        <button class="btn-purple" onclick="runGeminiAnalysis()">Run AI Progress Analysis</button>
-      </div>
-
-      <div id="gemini-response-card" class="card" style="display: none;">
-        <h3>AI Coach Recommendations</h3>
-        <div id="gemini-text" class="gemini-box"></div>
-      </div>
-    </section>
-
-    <!-- SECTION 5: ANALYTICS -->
-    <section id="view-analytics" class="view-section">
-      <div class="card">
-        <h3>Progress Over Time</h3>
-        <label>Select Exercise</label>
-        <select id="analytics-picker" onchange="renderAnalyticsChart()"></select>
-        <div class="chart-container">
-          <canvas id="progressChart"></canvas>
+    <!-- Exercise 2 -->
+    <div class="card">
+      <h2 class="exercise-title">Incline Dumbbell Press</h2>
+      <div class="set-row">
+        <span class="set-label">Set 1</span>
+        <div class="input-group">
+          <input type="number" placeholder="kg" class="input-kg">
+          <input type="number" placeholder="reps" class="input-reps">
         </div>
       </div>
-    </section>
+      <button class="btn-add-set">+ Add Set</button>
+    </div>
 
-    <!-- SECTION 6: CLOUD & ACCOUNT -->
-    <section id="view-cloud" class="view-section">
-      <div id="auth-box" class="card">
-        <h3>Google Cloud Sync (Firebase)</h3>
-        <input type="email" id="cloud-email" placeholder="Email">
-        <input type="password" id="cloud-pass" placeholder="Password">
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-primary" onclick="loginCloud()">Log In</button>
-          <button class="btn-secondary" onclick="registerCloud()">Sign Up</button>
+    <!-- Exercise 3 -->
+    <div class="card">
+      <h2 class="exercise-title">Overhead Shoulder Press</h2>
+      <div class="set-row">
+        <span class="set-label">Set 1</span>
+        <div class="input-group">
+          <input type="number" placeholder="kg" class="input-kg">
+          <input type="number" placeholder="reps" class="input-reps">
         </div>
       </div>
-    </section>
+      <button class="btn-add-set">+ Add Set</button>
+    </div>
 
   </main>
 
-  <!-- Program Options & Editing Modal -->
-  <div id="program-modal" class="modal-overlay">
-    <div class="modal-content">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 id="modal-program-title" style="margin: 0;">Edit Program</h3>
-        <button class="btn-icon" onclick="closeProgramModal()">✕</button>
-      </div>
-
-      <label>Program Name</label>
-      <input type="text" id="modal-edit-title">
-
-      <label>Exercises in Program</label>
-      <div id="modal-exercises-list" style="margin-bottom: 12px;"></div>
-
-      <label>Add Exercise to Program</label>
-      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-        <select id="modal-add-ex-picker"></select>
-        <button class="btn-secondary" style="width: auto; padding: 0 16px;" onclick="addExerciseInModal()">Add</button>
-      </div>
-
-      <div style="display: flex; gap: 8px;">
-        <button class="btn-primary" onclick="saveProgramModalChanges()">Save Changes</button>
-        <button class="btn-secondary" style="background: var(--danger); border: none; color: #fff;" onclick="deleteProgramFromModal()">Delete Program</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase Script Integration -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.currentUser = null;
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        window.currentUser = user;
-        document.getElementById('auth-status-indicator').innerText = 'Cloud Synced';
-        document.getElementById('auth-status-indicator').style.color = 'var(--success)';
-        await loadCloudData();
-      } else {
-        document.getElementById('auth-status-indicator').innerText = 'Local Mode';
-      }
-    });
-
-    window.loginCloud = async () => {
-      const email = document.getElementById('cloud-email').value;
-      const pass = document.getElementById('cloud-pass').value;
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        alert('Logged in successfully!');
-      } catch (e) { alert('Error: ' + e.message); }
-    };
-
-    window.registerCloud = async () => {
-      const email = document.getElementById('cloud-email').value;
-      const pass = document.getElementById('cloud-pass').value;
-      try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        alert('Account registered successfully!');
-      } catch (e) { alert('Error: ' + e.message); }
-    };
-
-    window.syncToCloud = async () => {
-      if (!window.currentUser) return;
-      try {
-        await setDoc(doc(db, "users", window.currentUser.uid), {
-          exercises: window.exerciseDb,
-          programs: window.programs,
-          history: window.historyData
-        });
-      } catch(e) { console.error("Sync error: ", e); }
-    };
-
-    window.loadCloudData = async () => {
-      if (!window.currentUser) return;
-      try {
-        const docRef = doc(db, "users", window.currentUser.uid);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          window.exerciseDb = data.exercises || window.exerciseDb;
-          window.programs = data.programs || window.programs;
-          window.historyData = data.history || window.historyData;
-          saveLocal();
-          refreshAllUI();
-        }
-      } catch(e) { console.error("Cloud load error: ", e); }
-    };
-  </script>
-
-  <!-- Application Code Logic -->
   <script>
-    // Comprehensive Exercise Database inspired by Muscle & Strength
-    const defaultExercises = [
-      // CHEST
-      { name: "Barbell Bench Press", group: "Chest" },
-      { name: "Incline Dumbbell Press", group: "Chest" },
-      { name: "Flat Dumbbell Fly", group: "Chest" },
-      { name: "Low-to-High Cable Fly", group: "Chest" },
-      { name: "Dips for Chest", group: "Chest" },
-      { name: "Chest Press Machine", group: "Chest" },
+    // LocalStorage Data Management
+    document.querySelectorAll('input').forEach((input, index) => {
+      const savedValue = localStorage.getItem(`input_${index}`);
+      if (savedValue) {
+        input.value = savedValue;
+      }
 
-      // BACK
-      { name: "Barbell Bent Over Row", group: "Back" },
-      { name: "Lat Pulldown (Wide Grip)", group: "Back" },
-      { name: "Underhand Lat Pulldown", group: "Back" },
-      { name: "Seated Cable Row", group: "Back" },
-      { name: "Single-Arm Dumbbell Row", group: "Back" },
-      { name: "Cable Pullover", group: "Back" },
-
-      // LEGS
-      { name: "Barbell Back Squat", group: "Legs" },
-      { name: "Romanian Deadlift", group: "Legs" },
-      { name: "Leg Press", group: "Legs" },
-      { name: "Leg Extension", group: "Legs" },
-      { name: "Seated Leg Curl", group: "Legs" },
-      { name: "Standing Calf Raise", group: "Legs" },
-
-      // SHOULDERS
-      { name: "Overhead Dumbbell Press", group: "Shoulders" },
-      { name: "Standing Barbell OHP", group: "Shoulders" },
-      { name: "Dumbbell Lateral Raise", group: "Shoulders" },
-      { name: "Cable Lateral Raise", group: "Shoulders" },
-      { name: "Face Pull", group: "Shoulders" },
-      { name: "Reverse Pec Deck Fly", group: "Shoulders" },
-
-      // ARMS
-      { name: "Barbell Bicep Curl", group: "Arms" },
-      { name: "Incline Dumbbell Curl", group: "Arms" },
-      { name: "Hammer Curl", group: "Arms" },
-      { name: "Tricep Rope Pushdown", group: "Arms" },
-      { name: "Skull Crushers", group: "Arms" },
-      { name: "Overhead Dumbbell Tricep Ext", group: "Arms" },
-
-      // CORE
-      { name: "Hanging Leg Raise", group: "Core" },
-      { name: "Ab Wheel Rollout", group: "Core" },
-      { name: "Cable Crunch", group: "Core" },
-      { name: "Plank", group: "Core" }
-    ];
-
-    window.exerciseDb = JSON.parse(localStorage.getItem('fit_ex_db')) || defaultExercises;
-    window.programs = JSON.parse(localStorage.getItem('fit_programs')) || {};
-    window.historyData = JSON.parse(localStorage.getItem('fit_history')) || {};
-
-    let currentChart = null;
-    let tempBuilderExercises = [];
-    let activeEditingProgramName = null;
-    let tempModalExercises = [];
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedKey = localStorage.getItem('gemini_key');
-      if (savedKey) document.getElementById('gemini-key-input').value = savedKey;
-
-      refreshAllUI();
+      input.addEventListener('input', (e) => {
+        localStorage.setItem(`input_${index}`, e.target.value);
+      });
     });
-
-    function saveLocal() {
-      localStorage.setItem('fit_ex_db', JSON.stringify(window.exerciseDb));
-      localStorage.setItem('fit_programs', JSON.stringify(window.programs));
-      localStorage.setItem('fit_history', JSON.stringify(window.historyData));
-      if (window.syncToCloud) window.syncToCloud();
-    }
-
-    function refreshAllUI() {
-      populateExercisePickers();
-      populateProgramSelect();
-      renderExerciseDatabase();
-      renderManageProgramsList();
-    }
-
-    /* Left Sidebar Navigation */
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebar-overlay');
-      const isOpen = sidebar.classList.contains('open');
-
-      if (isOpen) {
-        sidebar.classList.remove('open');
-        overlay.style.display = 'none';
-      } else {
-        sidebar.classList.add('open');
-        overlay.style.display = 'block';
-      }
-    }
-
-    function navigate(viewId) {
-      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-
-      document.getElementById(`view-${viewId}`).classList.add('active');
-      event.currentTarget.classList.add('active');
-
-      toggleSidebar();
-
-      if (viewId === 'analytics') populateAnalyticsPicker();
-    }
-
-    /* Exercise Database & Filtering */
-    function populateExercisePickers() {
-      const picker = document.getElementById('program-exercise-picker');
-      const modalPicker = document.getElementById('modal-add-ex-picker');
-      picker.innerHTML = '';
-      modalPicker.innerHTML = '';
-
-      window.exerciseDb.forEach(ex => {
-        const opt = `<option value="${ex.name}">${ex.name} (${ex.group})</option>`;
-        picker.innerHTML += opt;
-        modalPicker.innerHTML += opt;
-      });
-    }
-
-    function addNewCustomExercise() {
-      const name = document.getElementById('custom-ex-name').value.trim();
-      const group = document.getElementById('custom-ex-group').value;
-
-      if (!name) return alert('Enter exercise name!');
-
-      window.exerciseDb.push({ name, group });
-      saveLocal();
-      refreshAllUI();
-
-      document.getElementById('custom-ex-name').value = '';
-      alert('Custom exercise added successfully!');
-    }
-
-    function renderExerciseDatabase() {
-      const filter = document.getElementById('filter-muscle-group').value;
-      const list = document.getElementById('exercise-db-list');
-      list.innerHTML = '';
-
-      const filtered = filter === 'All' ? window.exerciseDb : window.exerciseDb.filter(ex => ex.group === filter);
-
-      filtered.forEach(ex => {
-        list.innerHTML += `
-          <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-            <span><strong>${ex.name}</strong></span>
-            <span style="color: var(--accent); font-size: 0.85rem;">${ex.group}</span>
-          </div>
-        `;
-      });
-    }
-
-    /* Program Builder & Options Modal */
-    function addExerciseToProgramBuilder() {
-      const exName = document.getElementById('program-exercise-picker').value;
-      if (!exName || tempBuilderExercises.includes(exName)) return;
-
-      tempBuilderExercises.push(exName);
-      renderBuilderList();
-    }
-
-    function renderBuilderList() {
-      const list = document.getElementById('selected-exercises-list');
-      list.innerHTML = '';
-      tempBuilderExercises.forEach((ex, idx) => {
-        list.innerHTML += `
-          <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-main); padding: 8px 12px; border-radius: 6px; margin-bottom: 6px;">
-            <span>${idx + 1}. ${ex}</span>
-            <button onclick="removeBuilderEx(${idx})" style="width:auto; margin:0; padding: 2px 8px; background:var(--danger); border:none; color:#fff;">✕</button>
-          </div>
-        `;
-      });
-    }
-
-    function removeBuilderEx(idx) {
-      tempBuilderExercises.splice(idx, 1);
-      renderBuilderList();
-    }
-
-    function saveCustomProgram() {
-      const name = document.getElementById('new-program-name').value.trim();
-      if (!name) return alert('Enter program name!');
-      if (tempBuilderExercises.length === 0) return alert('Add at least one exercise!');
-
-      window.programs[name] = [...tempBuilderExercises];
-      saveLocal();
-      refreshAllUI();
-
-      document.getElementById('new-program-name').value = '';
-      tempBuilderExercises = [];
-      renderBuilderList();
-      alert('Program saved successfully!');
-    }
-
-    function renderManageProgramsList() {
-      const list = document.getElementById('programs-list-manage');
-      list.innerHTML = '';
-
-      const programKeys = Object.keys(window.programs);
-      if (programKeys.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-sub); font-size:0.85rem;">No active programs found.</p>';
-        return;
-      }
-
-      programKeys.forEach(pName => {
-        list.innerHTML += `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:10px 14px; border-radius:8px; margin-bottom:8px;">
-            <span><strong>${pName}</strong> (${window.programs[pName].length} exercises)</span>
-            <button class="btn-icon" onclick="openProgramModalByName('${pName}')">⋮</button>
-          </div>
-        `;
-      });
-    }
-
-    function loadPreset(type) {
-      if (type === 'ppl') {
-        window.programs['Push Day'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Overhead Dumbbell Press', 'Dumbbell Lateral Raise', 'Tricep Rope Pushdown'];
-        window.programs['Pull Day'] = ['Barbell Bent Over Row', 'Lat Pulldown (Wide Grip)', 'Cable Pullover', 'Barbell Bicep Curl'];
-        window.programs['Legs Day'] = ['Barbell Back Squat', 'Romanian Deadlift', 'Leg Extension', 'Hanging Leg Raise'];
-      } else if (type === 'upperlower') {
-        window.programs['Upper Body'] = ['Barbell Bench Press', 'Barbell Bent Over Row', 'Incline Dumbbell Press', 'Lat Pulldown (Wide Grip)', 'Dumbbell Lateral Raise'];
-        window.programs['Lower Body'] = ['Barbell Back Squat', 'Romanian Deadlift', 'Leg Press', 'Seated Leg Curl', 'Standing Calf Raise'];
-      } else if (type === 'brosplit') {
-        window.programs['Chest'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Low-to-High Cable Fly'];
-        window.programs['Back'] = ['Barbell Bent Over Row', 'Lat Pulldown (Wide Grip)', 'Cable Pullover'];
-        window.programs['Shoulders'] = ['Overhead Dumbbell Press', 'Dumbbell Lateral Raise', 'Face Pull'];
-        window.programs['Legs'] = ['Barbell Back Squat', 'Romanian Deadlift', 'Leg Extension'];
-        window.programs['Arms'] = ['Barbell Bicep Curl', 'Tricep Rope Pushdown', 'Hammer Curl'];
-      } else if (type === 'fullbody') {
-        window.programs['Full Body A'] = ['Barbell Back Squat', 'Barbell Bench Press', 'Barbell Bent Over Row', 'Dumbbell Lateral Raise'];
-        window.programs['Full Body B'] = ['Romanian Deadlift', 'Incline Dumbbell Press', 'Lat Pulldown (Wide Grip)', 'Barbell Bicep Curl'];
-      }
-
-      saveLocal();
-      refreshAllUI();
-      alert('Preset split loaded into your programs!');
-    }
-
-    function populateProgramSelect() {
-      const select = document.getElementById('select-active-program');
-      select.innerHTML = '<option value="">-- Select Workout --</option>';
-      Object.keys(window.programs).forEach(p => {
-        select.innerHTML += `<option value="${p}">${p}</option>`;
-      });
-      document.getElementById('workout-program-options-btn').style.display = 'none';
-    }
-
-    /* Program Options Modal Methods */
-    function openProgramOptionsModal() {
-      const selected = document.getElementById('select-active-program').value;
-      if (selected) openProgramModalByName(selected);
-    }
-
-    function openProgramModalByName(pName) {
-      activeEditingProgramName = pName;
-      tempModalExercises = [...window.programs[pName]];
-
-      document.getElementById('modal-program-title').innerText = `Edit ${pName}`;
-      document.getElementById('modal-edit-title').value = pName;
-      renderModalExercisesList();
-
-      document.getElementById('program-modal').style.display = 'flex';
-    }
-
-    function renderModalExercisesList() {
-      const container = document.getElementById('modal-exercises-list');
-      container.innerHTML = '';
-      tempModalExercises.forEach((ex, idx) => {
-        container.innerHTML += `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px; margin-bottom:6px;">
-            <span>${idx + 1}. ${ex}</span>
-            <button onclick="removeModalExercise(${idx})" style="width:auto; margin:0; padding:2px 8px; background:var(--danger); border:none; color:#fff;">✕</button>
-          </div>
-        `;
-      });
-    }
-
-    function removeModalExercise(idx) {
-      tempModalExercises.splice(idx, 1);
-      renderModalExercisesList();
-    }
-
-    function addExerciseInModal() {
-      const exName = document.getElementById('modal-add-ex-picker').value;
-      if (!exName || tempModalExercises.includes(exName)) return;
-
-      tempModalExercises.push(exName);
-      renderModalExercisesList();
-    }
-
-    function saveProgramModalChanges() {
-      const newTitle = document.getElementById('modal-edit-title').value.trim();
-      if (!newTitle) return alert('Enter program title!');
-      if (tempModalExercises.length === 0) return alert('Program must contain at least one exercise!');
-
-      if (newTitle !== activeEditingProgramName) {
-        delete window.programs[activeEditingProgramName];
-      }
-
-      window.programs[newTitle] = [...tempModalExercises];
-      saveLocal();
-      refreshAllUI();
-
-      closeProgramModal();
-      document.getElementById('select-active-program').value = newTitle;
-      startWorkoutSession();
-    }
-
-    function deleteProgramFromModal() {
-      if (!confirm(`Are you sure you want to delete ${activeEditingProgramName}?`)) return;
-
-      delete window.programs[activeEditingProgramName];
-      saveLocal();
-      refreshAllUI();
-      closeProgramModal();
-      document.getElementById('active-workout-container').innerHTML = '';
-    }
-
-    function closeProgramModal() {
-      document.getElementById('program-modal').style.display = 'none';
-    }
-
-    /* Active Workout Session Tracker */
-    function startWorkoutSession() {
-      const selected = document.getElementById('select-active-program').value;
-      const container = document.getElementById('active-workout-container');
-      const optBtn = document.getElementById('workout-program-options-btn');
-
-      container.innerHTML = '';
-
-      if (!selected || !window.programs[selected]) {
-        optBtn.style.display = 'none';
-        return;
-      }
-
-      optBtn.style.display = 'inline-block';
-
-      window.programs[selected].forEach((exName, idx) => {
-        container.innerHTML += `
-          <div class="card">
-            <h3>${exName}</h3>
-            <div id="sets-box-${idx}">
-              <div class="set-row">
-                <span>Set 1</span>
-                <input type="number" placeholder="kg" class="w-${idx}">
-                <input type="number" placeholder="reps" class="r-${idx}">
-              </div>
-            </div>
-            <button class="btn-add-set" onclick="addSetRowToSession(${idx})">+ Add Set</button>
-          </div>
-        `;
-      });
-
-      container.innerHTML += `<button class="btn-primary" onclick="finishWorkoutSession()">Complete & Save Session</button>`;
-    }
-
-    function addSetRowToSession(exIdx) {
-      const box = document.getElementById(`sets-box-${exIdx}`);
-      const setNum = box.children.length + 1;
-      box.innerHTML += `
-        <div class="set-row">
-          <span>Set ${setNum}</span>
-          <input type="number" placeholder="kg" class="w-${exIdx}">
-          <input type="number" placeholder="reps" class="r-${exIdx}">
-        </div>
-      `;
-    }
-
-    function finishWorkoutSession() {
-      const selectedProgram = document.getElementById('select-active-program').value;
-      if (!selectedProgram) return;
-
-      const dateStr = new Date().toISOString().split('T')[0];
-
-      window.programs[selectedProgram].forEach((exName, idx) => {
-        const weights = document.querySelectorAll(`.w-${idx}`);
-        const reps = document.querySelectorAll(`.r-${idx}`);
-
-        const setsData = [];
-        weights.forEach((wIn, i) => {
-          const w = parseFloat(wIn.value);
-          const r = parseInt(reps[i].value);
-          if (!isNaN(w) && !isNaN(r)) setsData.push({ weight: w, reps: r });
-        });
-
-        if (setsData.length > 0) {
-          if (!window.historyData[exName]) window.historyData[exName] = [];
-          window.historyData[exName].push({ date: dateStr, sets: setsData });
-        }
-      });
-
-      saveLocal();
-      alert('Workout session saved successfully!');
-      startWorkoutSession();
-    }
-
-    /* Gemini AI Integration */
-    function saveGeminiKey() {
-      localStorage.setItem('gemini_key', document.getElementById('gemini-key-input').value.trim());
-    }
-
-    async function runGeminiAnalysis() {
-      const apiKey = localStorage.getItem('gemini_key');
-      if (!apiKey) return alert('Enter Gemini API Key first!');
-
-      document.getElementById('gemini-response-card').style.display = 'block';
-      document.getElementById('gemini-text').innerText = 'Analyzing your workouts and progress...';
-
-      const prompt = `You are an elite strength & hypertrophy coach. Analyze this workout history data:
-${JSON.stringify(window.historyData, null, 2)}
-
-Provide recommendations in English on:
-1. Progress or plateau detection per exercise.
-2. Fatigue management (Deload or Rest Week recommendations).
-3. Exercise substitutions for stalled movements.`;
-
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-        const data = await res.json();
-        document.getElementById('gemini-text').innerText = data.candidates[0].content.parts[0].text;
-      } catch (e) {
-        document.getElementById('gemini-text').innerText = 'Error connecting to Gemini API.';
-      }
-    }
-
-    /* Analytics Chart */
-    function populateAnalyticsPicker() {
-      const picker = document.getElementById('analytics-picker');
-      picker.innerHTML = '';
-      const exercises = Object.keys(window.historyData);
-
-      if (exercises.length === 0) {
-        picker.innerHTML = '<option>No Workout History Recorded</option>';
-        return;
-      }
-
-      exercises.forEach(ex => picker.innerHTML += `<option value="${ex}">${ex}</option>`);
-      renderAnalyticsChart();
-    }
-
-    function renderAnalyticsChart() {
-      const exName = document.getElementById('analytics-picker').value;
-      const ctx = document.getElementById('progressChart').getContext('2d');
-
-      if (!window.historyData[exName]) return;
-
-      const labels = window.historyData[exName].map(e => e.date);
-      const dataPoints = window.historyData[exName].map(e => Math.max(...e.sets.map(s => s.weight)));
-
-      if (currentChart) currentChart.destroy();
-
-      currentChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Max Weight (kg)',
-            data: dataPoints,
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.2)',
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-            x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
-          }
-        }
-      });
-    }
   </script>
+
 </body>
 </html>
-
