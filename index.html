@@ -44,7 +44,6 @@
       flex-direction: column;
     }
 
-    /* Header & Navigation Bar */
     header {
       background: var(--bg-card);
       padding: 16px;
@@ -72,7 +71,7 @@
       padding: 4px 8px;
     }
 
-    /* Sidebar Drawer Navigation */
+    /* Sidebar Drawer Positioned Left */
     .sidebar-overlay {
       position: fixed;
       top: 0;
@@ -150,7 +149,6 @@
       color: #000;
     }
 
-    /* Main Content Layout */
     main {
       flex: 1;
       padding: 16px;
@@ -228,7 +226,17 @@
       cursor: pointer;
     }
 
-    /* Workout Session Styles */
+    button.btn-icon {
+      width: auto;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0 8px;
+      margin: 0;
+    }
+
     .set-row {
       display: flex;
       gap: 8px;
@@ -257,7 +265,6 @@
       cursor: pointer;
     }
 
-    /* Preset Buttons Grid */
     .preset-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -282,18 +289,45 @@
       white-space: pre-line;
       color: #f3e8ff;
     }
+
+    /* Action Modal for Editing/Deleting Programs */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 14px;
+      padding: 20px;
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid var(--border);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Header Bar -->
+  <!-- Top Navigation Header -->
   <header>
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <h1>FitTracker AI</h1>
     <div id="auth-status-indicator" style="font-size: 0.8rem; color: var(--text-sub);">Local</div>
   </header>
 
-  <!-- Sidebar Overlay & Navigation Drawer -->
+  <!-- Left Sidebar Drawer -->
   <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
@@ -310,13 +344,16 @@
     </ul>
   </aside>
 
-  <!-- Main Content Body -->
+  <!-- Main Body Content -->
   <main>
 
-    <!-- SECTION 1: WORKOUT SESSION -->
+    <!-- SECTION 1: WORKOUT TRACKER -->
     <section id="view-workout" class="view-section active">
       <div class="card">
-        <label>Choose Program to Train</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="margin:0;">Choose Program to Train</label>
+          <button id="workout-program-options-btn" class="btn-icon" style="display:none;" onclick="openProgramOptionsModal()">⋮</button>
+        </div>
         <select id="select-active-program" onchange="startWorkoutSession()">
           <option value="">-- Select Workout --</option>
         </select>
@@ -329,13 +366,18 @@
     <section id="view-programs" class="view-section">
       <div class="card">
         <h3>Preset Workout Splits</h3>
-        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Load a structured workout split directly into your app:</p>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Load structured splits directly into your app:</p>
         <div class="preset-grid">
           <button class="btn-secondary" onclick="loadPreset('ppl')">Push / Pull / Legs</button>
           <button class="btn-secondary" onclick="loadPreset('upperlower')">Upper / Lower</button>
           <button class="btn-secondary" onclick="loadPreset('brosplit')">Bro Split (5 Day)</button>
           <button class="btn-secondary" onclick="loadPreset('fullbody')">Full Body (3 Day)</button>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>Existing Programs</h3>
+        <div id="programs-list-manage"></div>
       </div>
 
       <div class="card">
@@ -371,7 +413,7 @@
       </div>
 
       <div class="card">
-        <h3>Exercise Database</h3>
+        <h3>Exercise Database (Muscle & Strength)</h3>
         <label>Filter by Muscle Group</label>
         <select id="filter-muscle-group" onchange="renderExerciseDatabase()">
           <option value="All">All Muscle Groups</option>
@@ -395,7 +437,7 @@
 
       <div class="card">
         <h3>Smart Training Analysis</h3>
-        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Analyze fatigue accumulation, plateaus, and receive recommendations for deloads or exercise substitutions.</p>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Analyze fatigue, plateaus, and get deload/substitution recommendations.</p>
         <button class="btn-purple" onclick="runGeminiAnalysis()">Run AI Progress Analysis</button>
       </div>
 
@@ -417,7 +459,7 @@
       </div>
     </section>
 
-    <!-- SECTION 6: CLOUD & AUTH -->
+    <!-- SECTION 6: CLOUD & ACCOUNT -->
     <section id="view-cloud" class="view-section">
       <div id="auth-box" class="card">
         <h3>Google Cloud Sync (Firebase)</h3>
@@ -432,7 +474,34 @@
 
   </main>
 
-  <!-- Firebase Integration -->
+  <!-- Program Options & Editing Modal -->
+  <div id="program-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="modal-program-title" style="margin: 0;">Edit Program</h3>
+        <button class="btn-icon" onclick="closeProgramModal()">✕</button>
+      </div>
+
+      <label>Program Name</label>
+      <input type="text" id="modal-edit-title">
+
+      <label>Exercises in Program</label>
+      <div id="modal-exercises-list" style="margin-bottom: 12px;"></div>
+
+      <label>Add Exercise to Program</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <select id="modal-add-ex-picker"></select>
+        <button class="btn-secondary" style="width: auto; padding: 0 16px;" onclick="addExerciseInModal()">Add</button>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" onclick="saveProgramModalChanges()">Save Changes</button>
+        <button class="btn-secondary" style="background: var(--danger); border: none; color: #fff;" onclick="deleteProgramFromModal()">Delete Program</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Script Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -510,31 +579,65 @@
     };
   </script>
 
-  <!-- Main Application Logic -->
+  <!-- Application Code Logic -->
   <script>
-    // Initial Exercise Database categorized by Muscle Group
-    window.exerciseDb = JSON.parse(localStorage.getItem('fit_ex_db')) || [
+    // Comprehensive Exercise Database inspired by Muscle & Strength
+    const defaultExercises = [
+      // CHEST
       { name: "Barbell Bench Press", group: "Chest" },
       { name: "Incline Dumbbell Press", group: "Chest" },
-      { name: "Chest Fly", group: "Chest" },
-      { name: "Barbell Row", group: "Back" },
+      { name: "Flat Dumbbell Fly", group: "Chest" },
+      { name: "Low-to-High Cable Fly", group: "Chest" },
+      { name: "Dips for Chest", group: "Chest" },
+      { name: "Chest Press Machine", group: "Chest" },
+
+      // BACK
+      { name: "Barbell Bent Over Row", group: "Back" },
+      { name: "Lat Pulldown (Wide Grip)", group: "Back" },
       { name: "Underhand Lat Pulldown", group: "Back" },
+      { name: "Seated Cable Row", group: "Back" },
+      { name: "Single-Arm Dumbbell Row", group: "Back" },
       { name: "Cable Pullover", group: "Back" },
-      { name: "Barbell Squat", group: "Legs" },
+
+      // LEGS
+      { name: "Barbell Back Squat", group: "Legs" },
       { name: "Romanian Deadlift", group: "Legs" },
+      { name: "Leg Press", group: "Legs" },
       { name: "Leg Extension", group: "Legs" },
-      { name: "Overhead Shoulder Press", group: "Shoulders" },
-      { name: "Lateral Raise", group: "Shoulders" },
+      { name: "Seated Leg Curl", group: "Legs" },
+      { name: "Standing Calf Raise", group: "Legs" },
+
+      // SHOULDERS
+      { name: "Overhead Dumbbell Press", group: "Shoulders" },
+      { name: "Standing Barbell OHP", group: "Shoulders" },
+      { name: "Dumbbell Lateral Raise", group: "Shoulders" },
+      { name: "Cable Lateral Raise", group: "Shoulders" },
+      { name: "Face Pull", group: "Shoulders" },
+      { name: "Reverse Pec Deck Fly", group: "Shoulders" },
+
+      // ARMS
       { name: "Barbell Bicep Curl", group: "Arms" },
+      { name: "Incline Dumbbell Curl", group: "Arms" },
+      { name: "Hammer Curl", group: "Arms" },
       { name: "Tricep Rope Pushdown", group: "Arms" },
-      { name: "Hanging Leg Raise", group: "Core" }
+      { name: "Skull Crushers", group: "Arms" },
+      { name: "Overhead Dumbbell Tricep Ext", group: "Arms" },
+
+      // CORE
+      { name: "Hanging Leg Raise", group: "Core" },
+      { name: "Ab Wheel Rollout", group: "Core" },
+      { name: "Cable Crunch", group: "Core" },
+      { name: "Plank", group: "Core" }
     ];
 
+    window.exerciseDb = JSON.parse(localStorage.getItem('fit_ex_db')) || defaultExercises;
     window.programs = JSON.parse(localStorage.getItem('fit_programs')) || {};
     window.historyData = JSON.parse(localStorage.getItem('fit_history')) || {};
-    
+
     let currentChart = null;
     let tempBuilderExercises = [];
+    let activeEditingProgramName = null;
+    let tempModalExercises = [];
 
     document.addEventListener("DOMContentLoaded", () => {
       const savedKey = localStorage.getItem('gemini_key');
@@ -554,9 +657,10 @@
       populateExercisePickers();
       populateProgramSelect();
       renderExerciseDatabase();
+      renderManageProgramsList();
     }
 
-    /* Sidebar Navigation */
+    /* Left Sidebar Navigation */
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebar-overlay');
@@ -583,12 +687,17 @@
       if (viewId === 'analytics') populateAnalyticsPicker();
     }
 
-    /* Exercise Database & Muscle Groups */
+    /* Exercise Database & Filtering */
     function populateExercisePickers() {
       const picker = document.getElementById('program-exercise-picker');
+      const modalPicker = document.getElementById('modal-add-ex-picker');
       picker.innerHTML = '';
+      modalPicker.innerHTML = '';
+
       window.exerciseDb.forEach(ex => {
-        picker.innerHTML += `<option value="${ex.name}">${ex.name} (${ex.group})</option>`;
+        const opt = `<option value="${ex.name}">${ex.name} (${ex.group})</option>`;
+        picker.innerHTML += opt;
+        modalPicker.innerHTML += opt;
       });
     }
 
@@ -597,7 +706,7 @@
       const group = document.getElementById('custom-ex-group').value;
 
       if (!name) return alert('Enter exercise name!');
-      
+
       window.exerciseDb.push({ name, group });
       saveLocal();
       refreshAllUI();
@@ -615,7 +724,7 @@
 
       filtered.forEach(ex => {
         list.innerHTML += `
-          <div style="display:flex; justify-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
             <span><strong>${ex.name}</strong></span>
             <span style="color: var(--accent); font-size: 0.85rem;">${ex.group}</span>
           </div>
@@ -623,7 +732,7 @@
       });
     }
 
-    /* Program Builder & Presets */
+    /* Program Builder & Options Modal */
     function addExerciseToProgramBuilder() {
       const exName = document.getElementById('program-exercise-picker').value;
       if (!exName || tempBuilderExercises.includes(exName)) return;
@@ -657,7 +766,7 @@
 
       window.programs[name] = [...tempBuilderExercises];
       saveLocal();
-      populateProgramSelect();
+      refreshAllUI();
 
       document.getElementById('new-program-name').value = '';
       tempBuilderExercises = [];
@@ -665,27 +774,47 @@
       alert('Program saved successfully!');
     }
 
+    function renderManageProgramsList() {
+      const list = document.getElementById('programs-list-manage');
+      list.innerHTML = '';
+
+      const programKeys = Object.keys(window.programs);
+      if (programKeys.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-sub); font-size:0.85rem;">No active programs found.</p>';
+        return;
+      }
+
+      programKeys.forEach(pName => {
+        list.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:10px 14px; border-radius:8px; margin-bottom:8px;">
+            <span><strong>${pName}</strong> (${window.programs[pName].length} exercises)</span>
+            <button class="btn-icon" onclick="openProgramModalByName('${pName}')">⋮</button>
+          </div>
+        `;
+      });
+    }
+
     function loadPreset(type) {
       if (type === 'ppl') {
-        window.programs['Push Day'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Overhead Shoulder Press', 'Lateral Raise', 'Tricep Rope Pushdown'];
-        window.programs['Pull Day'] = ['Barbell Row', 'Underhand Lat Pulldown', 'Cable Pullover', 'Barbell Bicep Curl'];
-        window.programs['Legs Day'] = ['Barbell Squat', 'Romanian Deadlift', 'Leg Extension', 'Hanging Leg Raise'];
+        window.programs['Push Day'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Overhead Dumbbell Press', 'Dumbbell Lateral Raise', 'Tricep Rope Pushdown'];
+        window.programs['Pull Day'] = ['Barbell Bent Over Row', 'Lat Pulldown (Wide Grip)', 'Cable Pullover', 'Barbell Bicep Curl'];
+        window.programs['Legs Day'] = ['Barbell Back Squat', 'Romanian Deadlift', 'Leg Extension', 'Hanging Leg Raise'];
       } else if (type === 'upperlower') {
-        window.programs['Upper Body'] = ['Barbell Bench Press', 'Barbell Row', 'Incline Dumbbell Press', 'Underhand Lat Pulldown', 'Lateral Raise'];
-        window.programs['Lower Body'] = ['Barbell Squat', 'Romanian Deadlift', 'Leg Extension', 'Hanging Leg Raise'];
+        window.programs['Upper Body'] = ['Barbell Bench Press', 'Barbell Bent Over Row', 'Incline Dumbbell Press', 'Lat Pulldown (Wide Grip)', 'Dumbbell Lateral Raise'];
+        window.programs['Lower Body'] = ['Barbell Back Squat', 'Romanian Deadlift', 'Leg Press', 'Seated Leg Curl', 'Standing Calf Raise'];
       } else if (type === 'brosplit') {
-        window.programs['Chest'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Chest Fly'];
-        window.programs['Back'] = ['Barbell Row', 'Underhand Lat Pulldown', 'Cable Pullover'];
-        window.programs['Shoulders'] = ['Overhead Shoulder Press', 'Lateral Raise'];
-        window.programs['Legs'] = ['Barbell Squat', 'Romanian Deadlift', 'Leg Extension'];
-        window.programs['Arms'] = ['Barbell Bicep Curl', 'Tricep Rope Pushdown'];
+        window.programs['Chest'] = ['Barbell Bench Press', 'Incline Dumbbell Press', 'Low-to-High Cable Fly'];
+        window.programs['Back'] = ['Barbell Bent Over Row', 'Lat Pulldown (Wide Grip)', 'Cable Pullover'];
+        window.programs['Shoulders'] = ['Overhead Dumbbell Press', 'Dumbbell Lateral Raise', 'Face Pull'];
+        window.programs['Legs'] = ['Barbell Back Squat', 'Romanian Deadlift', 'Leg Extension'];
+        window.programs['Arms'] = ['Barbell Bicep Curl', 'Tricep Rope Pushdown', 'Hammer Curl'];
       } else if (type === 'fullbody') {
-        window.programs['Full Body A'] = ['Barbell Squat', 'Barbell Bench Press', 'Barbell Row', 'Lateral Raise'];
-        window.programs['Full Body B'] = ['Romanian Deadlift', 'Incline Dumbbell Press', 'Underhand Lat Pulldown', 'Barbell Bicep Curl'];
+        window.programs['Full Body A'] = ['Barbell Back Squat', 'Barbell Bench Press', 'Barbell Bent Over Row', 'Dumbbell Lateral Raise'];
+        window.programs['Full Body B'] = ['Romanian Deadlift', 'Incline Dumbbell Press', 'Lat Pulldown (Wide Grip)', 'Barbell Bicep Curl'];
       }
 
       saveLocal();
-      populateProgramSelect();
+      refreshAllUI();
       alert('Preset split loaded into your programs!');
     }
 
@@ -695,15 +824,98 @@
       Object.keys(window.programs).forEach(p => {
         select.innerHTML += `<option value="${p}">${p}</option>`;
       });
+      document.getElementById('workout-program-options-btn').style.display = 'none';
     }
 
-    /* Active Workout Session */
+    /* Program Options Modal Methods */
+    function openProgramOptionsModal() {
+      const selected = document.getElementById('select-active-program').value;
+      if (selected) openProgramModalByName(selected);
+    }
+
+    function openProgramModalByName(pName) {
+      activeEditingProgramName = pName;
+      tempModalExercises = [...window.programs[pName]];
+
+      document.getElementById('modal-program-title').innerText = `Edit ${pName}`;
+      document.getElementById('modal-edit-title').value = pName;
+      renderModalExercisesList();
+
+      document.getElementById('program-modal').style.display = 'flex';
+    }
+
+    function renderModalExercisesList() {
+      const container = document.getElementById('modal-exercises-list');
+      container.innerHTML = '';
+      tempModalExercises.forEach((ex, idx) => {
+        container.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px; margin-bottom:6px;">
+            <span>${idx + 1}. ${ex}</span>
+            <button onclick="removeModalExercise(${idx})" style="width:auto; margin:0; padding:2px 8px; background:var(--danger); border:none; color:#fff;">✕</button>
+          </div>
+        `;
+      });
+    }
+
+    function removeModalExercise(idx) {
+      tempModalExercises.splice(idx, 1);
+      renderModalExercisesList();
+    }
+
+    function addExerciseInModal() {
+      const exName = document.getElementById('modal-add-ex-picker').value;
+      if (!exName || tempModalExercises.includes(exName)) return;
+
+      tempModalExercises.push(exName);
+      renderModalExercisesList();
+    }
+
+    function saveProgramModalChanges() {
+      const newTitle = document.getElementById('modal-edit-title').value.trim();
+      if (!newTitle) return alert('Enter program title!');
+      if (tempModalExercises.length === 0) return alert('Program must contain at least one exercise!');
+
+      if (newTitle !== activeEditingProgramName) {
+        delete window.programs[activeEditingProgramName];
+      }
+
+      window.programs[newTitle] = [...tempModalExercises];
+      saveLocal();
+      refreshAllUI();
+
+      closeProgramModal();
+      document.getElementById('select-active-program').value = newTitle;
+      startWorkoutSession();
+    }
+
+    function deleteProgramFromModal() {
+      if (!confirm(`Are you sure you want to delete ${activeEditingProgramName}?`)) return;
+
+      delete window.programs[activeEditingProgramName];
+      saveLocal();
+      refreshAllUI();
+      closeProgramModal();
+      document.getElementById('active-workout-container').innerHTML = '';
+    }
+
+    function closeProgramModal() {
+      document.getElementById('program-modal').style.display = 'none';
+    }
+
+    /* Active Workout Session Tracker */
     function startWorkoutSession() {
       const selected = document.getElementById('select-active-program').value;
       const container = document.getElementById('active-workout-container');
+      const optBtn = document.getElementById('workout-program-options-btn');
+
       container.innerHTML = '';
 
-      if (!selected || !window.programs[selected]) return;
+      if (!selected || !window.programs[selected]) {
+        optBtn.style.display = 'none';
+        return;
+      }
+
+      optBtn.style.display = 'inline-block';
 
       window.programs[selected].forEach((exName, idx) => {
         container.innerHTML += `
@@ -745,7 +957,7 @@
       window.programs[selectedProgram].forEach((exName, idx) => {
         const weights = document.querySelectorAll(`.w-${idx}`);
         const reps = document.querySelectorAll(`.r-${idx}`);
-        
+
         const setsData = [];
         weights.forEach((wIn, i) => {
           const w = parseFloat(wIn.value);
@@ -764,7 +976,7 @@
       startWorkoutSession();
     }
 
-    /* Gemini AI & Analytics */
+    /* Gemini AI Integration */
     function saveGeminiKey() {
       localStorage.setItem('gemini_key', document.getElementById('gemini-key-input').value.trim());
     }
@@ -797,6 +1009,7 @@ Provide recommendations in English on:
       }
     }
 
+    /* Analytics Chart */
     function populateAnalyticsPicker() {
       const picker = document.getElementById('analytics-picker');
       picker.innerHTML = '';
