@@ -2,80 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>FitTracker AI</title>
   <style>
-    :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --input-bg: #0f172a;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent-blue: #38bdf8;
-      --border-color: #334155;
-      --button-bg: #0284c7;
-      --button-hover: #0369a1;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-color: #0d131f;
+      --header-bg: #131b2a;
+      --card-bg: #182232;
+      --input-bg: #0d131f;
+      --text-main: #ffffff;
+      --text-muted: #8b9bb4;
+      --accent-blue: #38bdf8;
+      --border-color: #233146;
     }
 
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
       padding-bottom: 40px;
     }
 
-    /* Fixed Header Layout */
+    /* Fixed Header using CSS Grid */
     .app-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       width: 100%;
-      max-width: 600px;
-      padding: 16px;
-      background-color: #121824;
+      background-color: var(--header-bg);
       border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding-top: max(12px, env(safe-area-inset-top));
+      padding-bottom: 12px;
     }
 
+    .header-grid {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      align-items: center;
+    }
+
+    /* Column 1: Left Menu Icon */
     .menu-btn {
       background: transparent;
       border: none;
-      color: var(--text-muted);
+      color: #ffffff;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 4px;
-      border-radius: 6px;
+      justify-content: flex-start;
+      padding: 0;
+      width: 24px;
+      height: 24px;
     }
 
-    .menu-btn:hover {
-      color: var(--text-main);
-    }
-
+    /* Column 2: Center Title */
     .brand-title {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--accent-blue);
       white-space: nowrap;
-      letter-spacing: -0.02em;
+      text-align: center;
+      letter-spacing: -0.01em;
     }
 
     .brand-title .accent-text {
-      color: #ffffff;
-      margin-left: 2px;
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.85rem;
+      margin-left: 4px;
     }
 
+    /* Column 3: Right Status */
     .status-badge {
       font-size: 0.75rem;
       font-weight: 500;
@@ -98,11 +110,11 @@
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     .card-header {
@@ -112,7 +124,7 @@
     }
 
     .card-title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       font-weight: 600;
     }
@@ -123,16 +135,17 @@
       color: var(--text-main);
     }
 
-    /* Form Controls */
+    /* Inputs */
     select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px;
       background-color: var(--input-bg);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 10px;
       color: var(--text-main);
-      font-size: 1rem;
+      font-size: 0.95rem;
       outline: none;
+      -webkit-appearance: none;
     }
 
     .set-row {
@@ -142,24 +155,23 @@
     }
 
     .set-label {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
-      white-space: nowrap;
-      width: 35px;
+      width: 42px;
     }
 
     .input-group {
       display: flex;
       flex: 1;
-      gap: 8px;
+      gap: 10px;
     }
 
     input[type="number"] {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background-color: var(--input-bg);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 10px;
       color: var(--text-main);
       font-size: 1rem;
       text-align: center;
@@ -167,49 +179,50 @@
     }
 
     input[type="number"]::placeholder {
-      color: var(--text-muted);
+      color: #4b5563;
     }
 
     .btn-add-set {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background-color: transparent;
       border: 1px dashed var(--accent-blue);
-      border-radius: 8px;
+      border-radius: 10px;
       color: var(--accent-blue);
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s;
     }
 
-    .btn-add-set:hover {
-      background-color: rgba(56, 189, 248, 0.1);
+    .btn-add-set:active {
+      background-color: rgba(56, 189, 248, 0.15);
     }
   </style>
 </head>
 <body>
 
   <header class="app-header">
-    <button class="menu-btn" aria-label="Open Menu">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </button>
+    <div class="header-grid">
+      <button class="menu-btn" aria-label="Open Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
 
-    <div class="brand-title">
-      FitTracker <span class="accent-text">AI</span>
-    </div>
+      <div class="brand-title">
+        FitTracker <span class="accent-text">Local Mode</span>
+      </div>
 
-    <div class="status-badge">
-      Local Mode
+      <div class="status-badge">
+        AI
+      </div>
     </div>
   </header>
 
   <main class="main-container">
     
-    <!-- Program Selector -->
     <div class="card">
       <div class="card-header">
         <span class="card-title">Choose Program to Train</span>
@@ -221,40 +234,37 @@
       </select>
     </div>
 
-    <!-- Exercise 1 -->
     <div class="card">
       <h2 class="exercise-title">Barbell Bench Press</h2>
       <div class="set-row">
         <span class="set-label">Set 1</span>
         <div class="input-group">
-          <input type="number" placeholder="kg" class="input-kg">
-          <input type="number" placeholder="reps" class="input-reps">
+          <input type="number" placeholder="kg" class="input-kg" inputmode="decimal">
+          <input type="number" placeholder="reps" class="input-reps" inputmode="numeric">
         </div>
       </div>
       <button class="btn-add-set">+ Add Set</button>
     </div>
 
-    <!-- Exercise 2 -->
     <div class="card">
       <h2 class="exercise-title">Incline Dumbbell Press</h2>
       <div class="set-row">
         <span class="set-label">Set 1</span>
         <div class="input-group">
-          <input type="number" placeholder="kg" class="input-kg">
-          <input type="number" placeholder="reps" class="input-reps">
+          <input type="number" placeholder="kg" class="input-kg" inputmode="decimal">
+          <input type="number" placeholder="reps" class="input-reps" inputmode="numeric">
         </div>
       </div>
       <button class="btn-add-set">+ Add Set</button>
     </div>
 
-    <!-- Exercise 3 -->
     <div class="card">
       <h2 class="exercise-title">Overhead Shoulder Press</h2>
       <div class="set-row">
         <span class="set-label">Set 1</span>
         <div class="input-group">
-          <input type="number" placeholder="kg" class="input-kg">
-          <input type="number" placeholder="reps" class="input-reps">
+          <input type="number" placeholder="kg" class="input-kg" inputmode="decimal">
+          <input type="number" placeholder="reps" class="input-reps" inputmode="numeric">
         </div>
       </div>
       <button class="btn-add-set">+ Add Set</button>
@@ -263,15 +273,14 @@
   </main>
 
   <script>
-    // LocalStorage Data Management
-    document.querySelectorAll('input').forEach((input, index) => {
-      const savedValue = localStorage.getItem(`input_${index}`);
+    document.querySelectorAll('input, select').forEach((element, index) => {
+      const savedValue = localStorage.getItem(`fittracker_input_${index}`);
       if (savedValue) {
-        input.value = savedValue;
+        element.value = savedValue;
       }
 
-      input.addEventListener('input', (e) => {
-        localStorage.setItem(`input_${index}`, e.target.value);
+      element.addEventListener('input', (e) => {
+        localStorage.setItem(`fittracker_input_${index}`, e.target.value);
       });
     });
   </script>
